@@ -1,0 +1,14 @@
+{
+    "hooks": {
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "echo 'Must check whether there are relevant skills to use first.'"
+                    }
+                ]
+            }
+        ]
+    }
+}
