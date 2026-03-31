@@ -4,7 +4,8 @@
     "userPromptSubmitted": [
       {
         "type": "command",
-        "command": "echo 'Must check whether there are relevant skills to use first.'"
+        "bash": "echo 'Must check whether there are relevant skills to use first.'",
+        "cwd": "."
       }
     ]
   }
