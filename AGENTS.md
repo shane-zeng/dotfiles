@@ -139,3 +139,15 @@ If unsure → **do not abstract**
 > Prefer explicit, slightly duplicated, readable code over clever abstraction.
 
 > The goal is maintainability, not architectural purity.
+
+---
+
+---
+
+### Language & Communication Rules
+
+- Responses must be in **Traditional Chinese**, except for:
+  - Translation tasks
+  - Technical terms (e.g., programming languages, frameworks, CLI commands, error messages)
+
+- Technical terms may remain in English, but explanations must be in Chinese for clarity and precision.
