@@ -142,8 +142,6 @@ If unsure → **do not abstract**
 
 ---
 
----
-
 ### Language & Communication Rules
 
 - Responses must be in **Traditional Chinese**, except for:
