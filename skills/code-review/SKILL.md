@@ -6,23 +6,24 @@
 - Ask for explanation or separation for any change outside the stated scope.
 - Do not mix changes with different purposes in one PR.
 - For large PRs, prefer asking for decomposition over trying to review everything.
-- If the PR touches config, schema, deployment, or external dependencies, require clear notes in the PR description.
+- If the PR touches config, schema, deployment, test infrastructure, or external dependencies, require clear notes in the PR description.
+- A valid problem does not automatically justify expanding the current PR to solve it.
 
 ## Ask For Design Rationale
 
 - Do not only ask “does it work”; ask “why is it designed this way?”
-- Require trade-off reasoning, not just “cleaner” or “more readable.”
-- If the reason changes but the conclusion stays the same, watch for defending.
+- Require trade-off reasoning, not just “cleaner”, “more readable”, or “best practice”.
 - A technically correct point is not necessarily relevant to the current decision.
-- When external sources or AI-generated arguments are used, ask which comparison they actually support.
+- When external sources or AI-generated arguments are used, ask which concrete project decision they support.
+- Distinguish between solving the actual failure mode and adding a broader preventive mechanism.
 
 ## Clarify The Alternatives
 
 - Do not let the discussion become a false binary.
-- List all reasonable options explicitly.
-- Ask the author to explain why option B is better than option C.
+- List reasonable alternatives when the decision materially affects architecture or maintenance cost.
 - A reason against option A is not automatically a reason for option B.
-- End with a concrete change, not an abstract debate.
+- Prefer the smallest mechanism that adequately addresses the demonstrated risk.
+- Do not introduce permanent infrastructure complexity for a rare failure without sufficient justification.
 
 ## Check Performance And Cost
 
@@ -30,14 +31,15 @@
 - Higher-level APIs may be readable, but watch for hidden intermediate structures and costs.
 - Language-specific behavior can affect performance; do not rely only on rough Big-O claims.
 - When performance matters, direct and explicit code with fewer allocations is often better.
-- Do not sacrifice clear cost control for cosmetic conciseness.
+- Consider long-term maintenance cost, not only implementation cost.
 
 ## Check Tests
 
 - Tests should verify required behavior, not just lock in the current implementation.
 - If a new test reveals a separate issue, confirm whether it belongs in this PR.
-- Test names and comments should describe scenarios, not hide unexplained product or production issues.
-- Tests do not replace risk notes in the PR description.
+- Tests do not need to reproduce every runtime environment detail.
+- Distinguish application behavior tests from environment/configuration verification.
+- If changing global test infrastructure, require evidence that the protected failure mode justifies the permanent complexity.
 - Clarify which behaviors are intentional, temporary debt, or meant to be fixed.
 
 ## Check Comments
@@ -52,9 +54,9 @@
 
 - State the fact first, then the requested action.
 - Prefer concrete requested changes over vague open-ended questions.
-- When the author becomes defensive, bring the discussion back to the original issue.
-- Do not follow the author into a different battlefield.
-- If the reply does not answer the question, ask: “Which question is this answering?”
+- A clear blocking decision is not the same as refusing discussion.
+- Do not over-explain by default; provide enough reasoning for the author to understand the issue.
+- Do not feel required to provide a complete replacement design when rejecting an approach.
 - Stay professional, but mark true blockers as `Must`.
 
 ## Detect Defending
@@ -62,14 +64,15 @@
 - The reason keeps changing, but the conclusion does not.
 - The reply answers an adjacent issue, not the original one.
 - A correct technical point is used to support the wrong comparison.
-- Words like “readable,” “cleaner,” or “personal preference” are used to avoid a concrete trade-off.
+- Generic terms such as “readable”, “cleaner”, “best practice”, or “personal preference” replace concrete trade-offs.
 - The author does not acknowledge valid reviewer points.
 - When asked about scope, the author talks about local implementation details instead.
 
 ## Escalate When Needed
 
-- Single issues can be fixed locally.
-- Repeated issue patterns should be treated as delivery problems.
+- Single issues can usually be resolved locally.
+- Repeated issue patterns should be treated as delivery or collaboration problems.
 - If the reviewer keeps supplying requirements, architecture, or validation criteria, ownership may not be with the author.
 - Code review is collaboration, not a substitute for the author’s thinking.
+- If the discussion becomes primarily about whether the review itself is fair, respectful, or authoritative, separate that from the technical decision.
 - A mergeable PR must be understandable, verifiable, and maintainable by others.
