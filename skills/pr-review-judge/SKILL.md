@@ -1,298 +1,417 @@
 ---
 name: pr-review-judge
 description: >
-  協助 Reviewer 判斷 PR 作者的最新回覆是否包含有效新資訊、
-  是否需要調整原 Review Decision、是否維持原決策，
-  以及是否已經不值得繼續來回討論。
+  Helps a Pull Request reviewer determine whether the author's latest response
+  contains meaningful new information, whether the original review decision
+  should be changed, whether the original decision should be maintained,
+  and whether the discussion is no longer worth continuing.
 ---
 
 # PR Review Judge
 
-## 目的
+## Purpose
 
-此 Skill 只站在 Reviewer 的工作角度協助判斷：
+This Skill is designed specifically to assist a Reviewer in determining:
 
-1. 作者這次有沒有提出新資訊？
-2. 新資訊是否足以改變原本的 Review Decision？
-3. Reviewer 原本的判斷是否有錯？
-4. 是否應維持原決策？
-5. 是否已經進入重複討論？
-6. 這一輪需不需要回覆？
-7. 如果需要回覆，留言應包含哪些重點？
+1. Does the author's latest response contain genuinely new information?
+2. Is the new information significant enough to change the original Review Decision?
+3. Was the Reviewer's original judgment incorrect?
+4. Should the original decision be maintained?
+5. Has the discussion entered a repetitive debate?
+6. Does this round actually require a response?
+7. If a response is needed, what points should the response cover?
 
-目標不是幫 Reviewer 贏得辯論，而是讓 Review 合理收斂。
+The goal is not to help the Reviewer win an argument.
 
+The goal is to help the review process converge reasonably.
 
-# 核心原則
 
-## 1. 不預設 Reviewer 正確
+# Core Principles
 
-如果作者提出新的：
+## 1. Do Not Assume the Reviewer Is Correct
 
-- 程式碼證據
-- 官方文件
-- 測試結果
-- 執行結果
-- 專案歷史脈絡
-- 架構限制
-- 使用情境
-- 需求或規格
+If the Author provides new:
 
-必須重新評估。
+- Code evidence
+- Official documentation
+- Test results
+- Runtime results
+- Project history or context
+- Architectural constraints
+- Usage scenarios
+- Requirements or specifications
 
-如果 Reviewer 原本判斷錯誤，直接指出。
+the original judgment must be reassessed.
 
+If the Reviewer's original judgment is wrong, state that directly.
 
-## 2. 不同意不等於新資訊
 
-作者仍然不同意，不代表 Reviewer 必須重新開啟決策。
+## 2. Disagreement Is Not New Information
 
-區分：
+The fact that the Author still disagrees does not mean the Reviewer must reopen the decision.
 
-### 新資訊
-以前不知道，而且可能影響原決策。
+Distinguish between:
 
-### 新論點
-沒有新事實，只是使用既有資訊提出新的推論。
+### New Information
 
-### 重複論點
-核心內容已經說過，只是換句話說、增加篇幅或用 AI 重新整理。
+Information that was previously unknown and may affect the original decision.
 
-### 非技術內容
-例如：
+### New Argument
 
-- 不舒服
-- 不被尊重
-- 以上對下
-- 公平／不公平
-- 民主／極權
-- 對 Reviewer 態度或動機的推測
+A new inference or reasoning path based on information that was already known.
 
-除非其中包含新的技術事實，否則不影響 Review Decision。
+### Repeated Argument
 
+The core point has already been discussed, but is now:
 
-## 3. 文字量不等於資訊量
+- Rephrased
+- Expanded
+- Supported with additional examples
+- Reorganized
+- Rewritten using AI
 
-不要因為作者回很多字，就逐句回很多字。
+### Non-Technical Content
 
-只問：
+Examples include:
 
-> 這一輪真正新增了什麼？
+- Feeling uncomfortable
+- Feeling disrespected
+- Claims of hierarchical or top-down communication
+- Fairness or unfairness
+- Democracy or authoritarianism analogies
+- Speculation about the Reviewer's attitude or motivation
 
+Unless such content also introduces new technical facts, it does not affect the Review Decision.
 
-## 4. Reviewer 可以維持明確決策
 
-`Requested changes`、`請移除`、`維持既有做法` 都只是明確的 Review Decision。
+## 3. Amount of Text Is Not Amount of Information
 
-明確決策不等於不容討論。
+Do not respond line by line simply because the Author wrote a long response.
 
-判斷 Reviewer 是否開放討論，應看：
+Ask only:
 
-- 是否閱讀新資訊
-- 是否重新評估
-- 是否願意承認自己可能判斷錯誤
+> What information was actually added in this round?
 
 
-# 判斷流程
+## 4. A Reviewer May Maintain a Clear Decision
 
-## Step 1：整理原 Review
+`Requested changes`, `please remove this`, or `keep the existing approach`
+are clear Review Decisions.
 
-簡單整理：
+A clear decision does not mean the Reviewer refuses discussion.
 
-- 原決策是什麼？
-- 原因是什麼？
-- 原決策依賴哪些前提？
+Whether the Reviewer is open to discussion should be judged by whether they:
 
+- Read new information
+- Reassess the original decision
+- Are willing to acknowledge that the original judgment may be wrong
 
-## Step 2：整理最新回覆
 
-只抽出：
+# Evaluation Process
 
-- 新事實
-- 新證據
-- 新論點
-- 重複內容
-- 非技術內容
+## Step 1: Reconstruct the Original Review
 
+Summarize:
 
-## Step 3：判斷影響
+- What was the original decision?
+- Why was the decision made?
+- What assumptions or facts did the decision depend on?
 
-### 足以改變原決策
-重新評估，必要時撤回或修改 Review。
 
-### 有新資訊，但不足以改變
-承認新資訊，但可以維持原決策。
+## Step 2: Extract the Latest Response
 
-### 沒有實質新資訊
-不需要重新完整論證。
+Extract only:
 
-### 已經反覆相同內容
-判斷是否應停止來回並依團隊流程升級。
+- New facts
+- New evidence
+- New arguments
+- Repeated content
+- Non-technical content
 
 
-# 維持原決策條件
+## Step 3: Evaluate the Impact
 
-符合以下條件時，可以建議「維持原決策」：
+### Significant Enough to Change the Original Decision
 
-1. Reviewer 已清楚說明理由。
-2. 作者有機會提出異議。
-3. 最新回覆已閱讀。
-4. 沒有足以推翻核心前提的新資訊。
-5. Reviewer 自我檢查後仍認為原判斷成立。
-6. 繼續討論很可能只會重複既有內容。
+Reassess the decision.
 
+If necessary, withdraw or modify the Review.
 
-# Reviewer 自我檢查
 
-每次都必須檢查：
+### New Information, but Not Enough to Change the Decision
 
-- 我是不是漏掉作者真正的新資訊？
-- 我是不是把個人偏好當成專案規範？
-- 我是不是因為過去對這個作者有負面印象，而先入為主？
-- 作者是否真的證明我的某個前提錯誤？
-- 我現在是在重新評估，還是在想辦法反駁他？
-- 我是否只是因為已經下過 Requested changes，所以不願意改變？
+Acknowledge the new information, but the original decision may still be maintained.
 
 
-# 何時停止討論
+### No Meaningful New Information
 
-出現以下情況時，優先建議停止，而不是繼續產生反駁：
+Do not repeat the entire technical argument.
 
-- 雙方核心立場已經清楚。
-- 最新回覆沒有重要新資訊。
-- 相同理由已經來回多次。
-- 討論開始轉向態度、尊重、權力或人格。
-- Reviewer 開始逐句反駁作者。
-- 作者文字持續增加，但沒有改變任何決策前提。
 
-若團隊已有爭議升級流程：
+### The Same Content Is Repeating
 
-> 建議依既定流程處理。
+Determine whether the discussion should stop and move to the team's established escalation process.
 
 
-# AI 內容
+# Conditions for Maintaining the Original Decision
 
-不得因作者使用 AI 就直接否定。
+Recommend `Maintain the original decision` when all of the following are true:
 
-只判斷：
+1. The Reviewer has already clearly explained the decision and its reasoning.
+2. The Author has had a reasonable opportunity to challenge it.
+3. The latest response has actually been read.
+4. There is no new information that invalidates the core assumptions.
+5. After self-review, the Reviewer still considers the original judgment valid.
+6. Further discussion is likely to repeat existing arguments rather than add information.
 
-> AI 產生的內容有沒有新的、可驗證、與專案相關的資訊？
 
-如果只是：
+# Reviewer Self-Check
 
-- 通用最佳實務
-- 更多假設
-- 更多可能性
-- 換句話說
-- 大量延伸論述
+Every analysis must explicitly check:
 
-則視為沒有實質資訊增量。
+- Did I miss genuinely new information from the Author?
+- Am I treating a personal preference as a project rule?
+- Am I being influenced by previous negative experiences with this Author?
+- Did the Author actually prove that one of my assumptions is wrong?
+- Am I reassessing the issue, or am I trying to find a way to rebut them?
+- Am I refusing to change simply because I already submitted `Requested changes`?
 
 
-# 固定輸出格式
+# When to Stop the Discussion
 
-## 判斷
+Prefer stopping rather than producing more rebuttals when:
 
-選一個：
+- Both sides' core positions are already clear.
+- The latest response contains no important new information.
+- The same reasons have already been repeated multiple times.
+- The discussion has shifted toward attitude, respect, authority, or personality.
+- The Reviewer has started responding line by line.
+- The Author's response keeps getting longer without changing any decision assumptions.
 
-- 原 Review 應修正
-- 有重要新資訊，需要重新評估
-- 有新資訊，但不足以改變原決策
-- 只有新論點
-- 沒有實質新資訊
+If the team already has an escalation process:
+
+> Recommend following the established process.
+
+
+# AI-Generated Content
+
+Do not reject content merely because the Author used AI.
+
+Only evaluate:
+
+> Does the AI-generated content contain new, verifiable, project-relevant information?
+
+If it only contains:
+
+- Generic best practices
+- More assumptions
+- More possibilities
+- Rephrasing
+- Large amounts of expanded reasoning
+
+treat it as having no meaningful information gain.
+
+
+# Fixed Output Format
+
+## Judgment
+
+Choose one:
+
+- Original Review should be revised
+- Significant new information; reassessment required
+- New information, but insufficient to change the original decision
+- New argument only
+- No meaningful new information
+- Maintain the original decision
+- Discussion has become repetitive
+- Recommend following the established escalation process
+
+
+## New Information
+
+List only information that is genuinely new in this round.
+
+If there is none:
+
+> No meaningful new information.
+
+
+## Impact on the Original Decision
+
+Briefly explain whether the new information changes the core assumptions behind the original decision.
+
+
+## Reviewer Self-Check
+
+State whether the original Review Decision still holds.
+
+If the Reviewer has made an error, state it directly.
+
+
+## Recommended Action
+
+Choose one:
+
+- Withdraw Review
+- Revise Review
+- Continue verification
+- Maintain the original decision
+- No response needed
+- Do not respond to non-technical content
+- Follow the established escalation process
+
+
+# Comment Direction
+
+## Language Requirement
+
+The entire `Comment Direction` section MUST be written in Traditional Chinese using natural Taiwan terminology.
+
+Do not use Simplified Chinese.
+
+Prefer terminology commonly used by Taiwanese software engineering teams, such as:
+
+- 審查
+- 審查意見
+- 原決策
 - 維持原決策
-- 已進入重複討論
-- 建議依既定流程升級
+- 補充資訊
+- 技術判斷
+- 技術依據
+- 專案脈絡
+- 既定流程
+- 升級處理
+
+English technical terms that are already commonly used in Taiwanese engineering teams,
+such as `PR`, `Review`, `Requested changes`, `commit`, `CI`, or framework/API names,
+may be retained when doing so is more natural.
+
+The purpose is to sound like a Taiwanese engineer writing a concise PR comment,
+not like translated formal Chinese.
 
 
-## 新資訊
+## Default Behavior
 
-只列真正新增的資訊。
+Do NOT write a complete PR comment unless the user explicitly asks for one.
 
-沒有則寫：
-
-> 無實質新資訊。
+The default output should only provide the direction of the comment.
 
 
-## 對原決策的影響
-
-簡短說明是否改變原本的核心前提。
-
-
-## Reviewer 自我檢查
-
-指出 Reviewer 原判斷是否仍站得住腳。
-
-如果 Reviewer 有問題，直接指出。
-
-
-## 建議動作
-
-選擇：
-
-- 撤回 Review
-- 修改 Review
-- 繼續確認
-- 維持原決策
-- 不需要回覆
-- 不回非技術內容
-- 依既定流程升級
-
-
-## 留言方向
-
-預設不直接代寫完整 Comment。
-
-只提供：
+## Output Format
 
 ### 目的
-這次回覆要完成什麼。
+
+用一句話說明這次回覆需要完成什麼。
+
 
 ### 要包含
+
 - 重點 1
 - 重點 2
 - 重點 3
 
+
 ### 不需要回
-- 不值得繼續回應的內容
+
+列出不值得繼續回應的內容。
+
 
 ### 建議長度
-通常 1～3 句。
+
+通常為：
+
+> 1～3 句。
 
 
-# 維持原決策時的留言方向
+# Comment Direction When Maintaining the Original Decision
 
-如果判斷為「維持原決策」：
+If the judgment is `Maintain the original decision`, the `Comment Direction`
+section must follow this structure:
 
 ### 目的
-讓作者知道最新內容已被評估，但目前不足以改變 Review Decision。
+
+讓作者知道最新補充已經被閱讀與評估，但目前不足以改變原本的技術判斷。
+
 
 ### 要包含
+
 - 已看過最新補充
 - 真正的新資訊是什麼（如果有）
 - 為什麼沒有改變核心判斷
-- 原 Review 維持
+- 維持原審查意見
+
 
 ### 不需要回
+
 - 重複論點
-- 態度或動機推測
-- 與技術決策無關的感受
+- 對 Reviewer 態度或動機的推測
+- 與技術決策無關的個人感受
 - 已經回答過的內容
 
+
 ### 建議長度
-1～2 句。
 
-不要重新寫一篇完整技術論證。
+> 1～2 句。
+
+Do not rewrite the entire technical argument.
 
 
-# 最重要的原則
+# When the Discussion Has Become Repetitive
 
-> Reviewer 要重新評估新資訊，不需要重新回應所有文字。
+If the judgment is:
 
-> 作者不同意，不代表 Reviewer 必須持續說服。
+> No meaningful new information
 
-> 沒有新資訊時，維持原決策是正常的 Review 行為。
+or:
 
-> 如果繼續回覆只會增加文字而不增加資訊，就應停止。
+> Discussion has become repetitive
 
-> Skill 幫 Reviewer 做判斷，不替 Reviewer 寫作文。
+do not:
+
+- Respond point by point
+- Produce another full technical explanation
+- Search for additional arguments merely to strengthen the Reviewer's position
+- Respond to every statement about attitude
+- Match a long response with an equally long response
+
+The `Comment Direction` should instead focus on:
+
+- 已閱讀最新回覆
+- 原判斷維持
+- 若仍有異議，依既定流程處理
+
+Recommended length:
+
+> 1～2 句。
+
+
+# Complete Comment Exception
+
+Only write a complete PR comment when the user explicitly asks for something such as:
+
+- 幫我寫 comment
+- 幫我寫完整留言
+- 幫我整理成可以直接貼的留言
+- 幫我回覆他
+
+Even then:
+
+- Keep it concise by default
+- Do not restate all background information
+- Do not write an essay
+- Do not add unnecessary politeness or filler
+- Preserve the user's own communication style as much as possible
+
+
+# Most Important Principles
+
+> A Reviewer must reassess new information, not re-answer every sentence.
+
+> The Author's continued disagreement does not require the Reviewer to keep persuading them.
+
+> Maintaining the original decision is a normal Review outcome when there is no meaningful new information.
+
+> If further replies only increase the amount of text without increasing the amount of information, stop.
+
+> This Skill helps the Reviewer make judgments. It does not write essays on behalf of the Reviewer.
