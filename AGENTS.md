@@ -58,6 +58,8 @@ Interactive Zsh aliases and functions:
 
 ## Session Documentation
 
+Save session summaries or handoff documents only when the user explicitly requests it. Native compaction must not trigger automatic file creation or updates.
+
 When asked to save or document a session:
 
 - Use `/path/to/workspace/copilot/docs/sessions/` as the default destination.

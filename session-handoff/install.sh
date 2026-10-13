@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install the shared compact hook and remove only this package's previous extras.
+# Disable this package's automatic handoff hooks and preserve native compaction.
 set -euo pipefail
 umask 077
 PACKAGE_DIR=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
@@ -31,9 +31,7 @@ for agent in codex claude; do
     "$JQ" --arg cmd "$COMMAND" '
       .hooks = ((.hooks // {}) | with_entries(
         .value |= (map(.hooks |= map(select(.command != $cmd))) | map(select(.hooks|length > 0)))
-        | select(.value|length > 0))) |
-      .hooks.SessionStart = ((.hooks.SessionStart // []) +
-        [{matcher:"^compact$",hooks:[{type:"command",command:$cmd,timeout:10}]}])
+        | select(.value|length > 0)))
     ' "$BUILD/$agent.before.json" > "$BUILD/$agent.after.json"
 done
 STATUS_COMMAND="HANDOFF_JQ=$QJQ /bin/bash $QSTATUS"
@@ -84,4 +82,4 @@ if [[ "$REMOVE_STATUS" == 1 ]]; then
     done
 fi
 rmdir "$BACKUP" 2>/dev/null || true
-printf 'Installed: %s\nConfigured: SessionStart(compact), Codex and Claude\nBackup (if changes): %s\n' "$HOOK_DIR/session-handoff.sh" "$BACKUP"
+printf 'Disabled hook: %s\nRemoved automatic handoff hooks from Codex and Claude; native compact is unchanged.\nBackup (if changes): %s\n' "$HOOK_DIR/session-handoff.sh" "$BACKUP"
