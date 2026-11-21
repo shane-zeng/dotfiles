@@ -1,0 +1,106 @@
+---
+name: session-docs
+description: Locate and read the user's saved session documents (docs/sessions/*.md) without the user pasting a path. Use when the user says to read, open, continue, or look up a session by Jira key (DEMO-23456), PR number (pr4321), topic, date, alias, or Codex chat id, or asks for one section of such a document (for example the conclusion). Also use to see why a session was archived or to propose archiving. Not for native Codex or Claude chat transcripts.
+---
+
+# Session documents
+
+Session documents are Markdown files the user saved under `/path/to/workspace/copilot/docs/sessions/`
+(see **Session Documentation** in the personal `global-AGENTS.md`). A derived index (`index.json`) sits next to them. The
+script does the lookup, so never load the index or scan the folder yourself, and never ask the user for a path
+before trying it.
+
+Resolve the script relative to this skill: `<skill-dir>/scripts/session_docs.py`. It uses only the Python
+standard library (3.9+).
+
+```bash
+uv run --no-project <skill-dir>/scripts/session_docs.py [--dir DIR] [--no-refresh] <command> ...
+```
+
+If `uv run` is blocked by the sandbox (uv cache lock), run the same script with `python3` instead. No packages are
+needed. `--dir` and `--no-refresh` go **before** the command. The directory can also be set with
+`SESSION_DOCS_DIR`.
+
+## Workflow
+
+1. **Locate.** `find <words from the user's request>`. Pass Jira keys, PR numbers, dates, aliases, or title words
+   as they were given; the script normalizes `demo23456`, `DEMO 23456`, `pr4321`, `PR #4321`, and `#4321`.
+2. **Decide.**
+   - One clear match: use it.
+   - Several close matches: show the candidates (date, title, file name) and ask which one. Do not guess.
+   - No match: retry once with fewer or different words. Then say nothing was found; do not invent a path.
+3. **Read only what is needed.** For a whole-document request, `read <ref>`. When the user names a part
+   ("the conclusion", "the second round"), run `outline <ref>` and then
+   `read <ref> --section "<heading text>"` (or `--section "#N"`). Long documents are truncated at 40,000
+   characters; read by section or `--lines A-B` instead of reading everything.
+4. **Say which file you used** (name and date), so the user can correct a wrong pick.
+
+`<ref>` is a file name, a path, or a query that resolves to exactly one document; exit code 3 means ambiguous
+(candidates are printed).
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `find QUERY... [--limit N] [--include-archived] [--archived-only] [--json]` | Locate documents; best matches first, newest first on ties |
+| `outline REF` | Headings with line ranges |
+| `read REF [--section S] [--first\|--all] [--lines A-B] [--max-chars N]` | Print a document or one section |
+| `build [--force]` | Refresh the index explicitly |
+| `archive-candidates [--json]` | Propose archivable documents (never moves anything) |
+| `archive REF --reason R [--superseded-by REF2] [--update-links] [--yes]` | Move a document to `_archive/` |
+
+Exit codes: 0 ok, 1 nothing found, 2 usage or environment error, 3 ambiguous.
+
+The index refreshes itself on every `find`, `outline`, and `read` (change detection by content hash), so it does
+not need manual upkeep. Refreshing may modify `index.json`, which is tracked in the sessions repository; mention
+it if the user is about to commit.
+
+## Archived documents
+
+A document is archived when it is under `docs/sessions/_archive/`. The path is the only source of truth; do not
+add markers inside documents.
+
+- `find` ignores archived documents by default.
+- Look at them only when the user asks for old versions, history, or why a decision was made; when nothing
+  current matches (the script then says the result came from the archive); when following a "superseded by" or
+  "merged into" reference; or when comparing versions.
+- Results from the archive are labeled `[archived]`. The reason and replacement come from
+  `_archive/manifest.json`. Tell the user a document is archived and point to its replacement before relying on it.
+
+### Archiving
+
+Archiving is a judgment call and changes file locations, so **only run `archive ... --yes` after the user has
+confirmed that specific document**.
+
+1. Run `archive-candidates` to propose. Candidates are suggestions with a confidence label, not decisions.
+2. Archive only these cases: the document was **superseded or merged** into a newer one; it is a **derived
+   artifact** whose content already lives in a main document (for example a save script); or it is a
+   **fragment** already folded into a main document.
+3. Do **not** archive because of age or because a document says "done". Old research and design decisions stay
+   useful.
+4. Run `archive REF --reason "..." [--superseded-by REF2]` without `--yes` first and show the preview. It lists
+   other documents that mention the file name; those links break after the move. `--update-links` rewrites only
+   full-path references (`docs/sessions/<name>`). Then ask for confirmation and run again with `--yes`.
+5. Every archive needs a reason, recorded in `_archive/manifest.json`.
+
+## Aliases
+
+Short names the user likes to use go in `docs/sessions/index.aliases.json` (a JSON object whose keys are a file
+name, a relative path, or a glob such as `*export-preview*`, and whose values are lists of alias strings).
+Rebuilding the index never removes them. Add an alias only when the user asks.
+
+## Limits
+
+- Only documents saved as Markdown are indexed (top level and `_archive/`). Native chat transcripts
+  (`~/.codex/sessions`, `~/.claude/projects`) are out of scope. When a document records a chat id, `find` can
+  match it, but resuming that chat is up to the user.
+- Metadata is extracted from the title and the bullet block before the first `##` section (date, PR, Jira,
+  status, chat id). A document without that block is still found by file name, title, headings, and body text.
+- Line numbers go stale when a document is edited; sections are matched by heading text. Refresh happens on
+  every call, so outline numbers are current when printed.
+
+## Tests
+
+```bash
+python3 -m unittest discover -s <skill-dir>/scripts
+```

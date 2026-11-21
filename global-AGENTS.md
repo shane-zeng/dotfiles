@@ -64,6 +64,25 @@ Interactive Zsh aliases and functions:
 - gh API authentication is separate from SSH. Check gh auth status before API work and use -R <owner>/<repo>.
 - Do not switch the active gh account without agreement.
 
+### Looking Up a Repository
+
+When I ask you to inspect, review, modify, or continue a repository, use this order:
+
+1. **Check the local workspace first.** Search with `fd` under:
+   - `/path/to/workspace/Code/` for personal and open-source projects.
+   - `/path/to/workspace/work/` for company projects.
+   - `/path/to/workspace/copilot/` for agent workspace content.
+   Confirm a GitHub repository's owner with `git remote -v`. Folder location is a convention; choose the GitHub account from the remote owner.
+   - If multiple local repositories have the same name, use the owner I gave to choose. If I did not give an owner, ask me; do not guess.
+   - If I gave only a repository name and it is not local, ask me for the owner before looking it up on GitHub.
+2. **Before using a local repository, verify its state.** Check the current branch (`git branch --show-current`) and uncommitted changes (`git status --short`). Tell me which branch and worktree state you used.
+   - If I ask for a PR, another branch, or newer content that is not available locally, use `git fetch` over SSH or `gh -R <owner>/<repo>`. Do not answer from stale local content.
+   - Do not switch branches, pull, or stash on your own. Ask me first when that is necessary.
+3. **If the repository is not local,** first inspect it read-only with `gh -R <owner>/<repo>` after checking `gh auth status`.
+   - Clone over SSH only when the task needs extensive reading, searching, or running code. Ask me before cloning. Use `/path/to/workspace/Code/` for personal or open-source projects and `/path/to/workspace/work/` for company projects, based on the project purpose. Tell me where you cloned it.
+4. **If `gh` fails,** report the specific reason and stop. Do not switch to another access method on your own.
+5. **GitHub connector:** if the session provides one, use it only after I agree. It uses separate authorization from `gh`; tell me which account or permission it will use before starting.
+
 ## Personal Machine Workspace Layout
 
 - /path/to/workspace/Code/ — personal and open-source projects.

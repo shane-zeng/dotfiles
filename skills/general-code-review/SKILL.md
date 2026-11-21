@@ -1,4 +1,9 @@
-# Code Review
+---
+name: general-code-review
+description: "General code review principles for pull requests: scope control, design rationale, alternatives, performance and cost, tests, comments, communication, and spotting defensive replies. Use when reviewing a PR or code change and the current project has no code-review skill of its own. If the project provides a code-review skill or review workflow, follow that first and use this only as a supplement."
+---
+
+# General Code Review
 
 ## Protect Scope First
 
