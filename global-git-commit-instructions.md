@@ -67,16 +67,19 @@ Avoid:
 
     feat: 新增 Cache Increment 邏輯
 
-## Co-author Rule
+## AI Co-author Attribution
 
-Every commit created with Codex assistance should include Codex as a co-author.
+Choose attribution based on which AI assistant materially contributed to the changes or commit message, rather than only which tool performs the final Git command.
 
-Add the following trailer to the commit message body:
+- Codex assistance: add `Co-authored-by: Codex <codex@openai.com>`.
+- Claude Code assistance: use Claude Code's configured commit attribution. If it is unset, Claude Code uses `Co-Authored-By: <model name> <noreply@anthropic.com>`.
+- If both Codex and Claude Code materially contributed, include one trailer for each.
+- Do not add a trailer for an assistant that did not contribute, and do not duplicate a trailer Claude Code already added.
 
-    Co-authored-by: Codex <codex@openai.com>
-
-Example:
+Example for a Codex-assisted commit:
 
     fix: 修正登入表單驗證錯誤
 
     Co-authored-by: Codex <codex@openai.com>
+
+When Claude Code creates the commit, check its configured attribution before editing the message; preserve its model-specific trailer unless the user requests another format.
