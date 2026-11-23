@@ -2,6 +2,32 @@
 
 This repository stores personal computer configuration and personal global agent instructions. It is independent of the work bootstrap repository at /path/to/workspace/work/dotfiles and the work instructions repository at /path/to/work/example-instructions.
 
+## Bootstrap a Personal Mac
+
+Install Xcode Command Line Tools and [Homebrew](https://brew.sh/) first. For the terminal step, set up the `github-personal` SSH alias and add its public key to GitHub. Check out this repository at `/path/to/workspace/Code/dotfiles` if you use the absolute paths in the personal agent instructions.
+
+From the repository root:
+
+```bash
+./bootstrap.sh --dry-run
+./bootstrap.sh
+./doctor.sh
+```
+
+For the same Ghostty appearance on a new Mac, install the four [MesloLGS NF font files](https://github.com/romkatv/powerlevel10k#manual-font-installation). The Ghostty config uses MesloLGS NF at 16 pt and the Raycast Dark theme.
+
+Open a fresh terminal before running `doctor.sh`. It checks CLI availability, runtimes, Ghostty and the installed links without connecting to GitHub.
+
+| Step | What it sets up |
+| --- | --- |
+| `brew` | Installs missing items from `Brewfile`, including PHP, Composer, uv, fnm, GitHub CLI, and daily CLI tools. Existing packages are not explicitly upgraded. |
+| `terminal` | Runs the pinned `shane-zeng/terminal-setup` fork with Zsh for Ghostty, shell plugins and Starship. Links the personal Ghostty config and ensures fnm has a runnable default Node. |
+| `agents` | Runs `install-instructions.sh` for the Codex and Claude instructions, commit command and skills. Install and sign in to the agent apps separately. |
+
+Use `./bootstrap.sh --only brew`, `--only terminal` or `--only agents` to rerun a step. Run `brew` before the first `terminal` run. The terminal installer can change the login shell and replace `.zshrc` and Ghostty's config. It asks first, prints the backup directory and stops on unmanaged symlinks it could overwrite. The SSH fetch uses a temporary checkout of the pinned commit. Once the same pin is installed and its files are in place, reruns skip the fork installer.
+
+To update the terminal pin, review the fork changes, update the pin in `bootstrap.sh`, and rerun the terminal step. Review older Ghostty config files under `~/.config/ghostty` if Ghostty loads another config. Existing app logins, private keys, and machine-specific settings stay on the Mac.
+
 ## Agent Instructions
 
 - global-AGENTS.md is shared personal guidance linked to ~/.claude/CLAUDE.md.

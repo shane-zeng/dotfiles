@@ -2,19 +2,19 @@
 # 字體設定
 # =============================================================================
 # 終端機主要字體
-font-family = "JetBrains Mono"
+font-family = "MesloLGS NF"
 
 # 視窗標題列字體
-window-title-font-family = "JetBrains Mono"
+window-title-font-family = "MesloLGS NF"
 
 # 字體大小 (單位：pt)
-font-size = 14
+font-size = 16
 
 # =============================================================================
 # 外觀與主題
 # =============================================================================
 # 套用配色主題
-theme = iTerm2 Dark Background
+theme = Raycast Dark
 
 # 背景透明度 (0.0 到 1.0)
 background-opacity = 0.90

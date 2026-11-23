@@ -1,0 +1,13 @@
+# Personal development tools. terminal-setup owns Ghostty and the Zsh environment.
+brew "git"
+brew "gh"
+brew "php"
+brew "composer"
+brew "uv"
+brew "fnm"
+brew "bat"
+brew "eza"
+brew "fd"
+brew "ripgrep"
+brew "lazygit"
+brew "zoxide"
