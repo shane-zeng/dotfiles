@@ -4,7 +4,7 @@ This repository stores personal computer configuration and personal global agent
 
 ## Bootstrap a Personal Mac
 
-Install Xcode Command Line Tools and [Homebrew](https://brew.sh/) first. For the terminal step, set up the `github-personal` SSH alias and add its public key to GitHub. Check out this repository at `/path/to/workspace/Code/dotfiles` if you use the absolute paths in the personal agent instructions.
+Install Xcode Command Line Tools and [Homebrew](https://brew.sh/) first. For the terminal step, set up the `github-personal` SSH alias and add its public key to GitHub.
 
 From the repository root:
 
@@ -16,13 +16,13 @@ From the repository root:
 
 For the same Ghostty appearance on a new Mac, install the four [MesloLGS NF font files](https://github.com/romkatv/powerlevel10k#manual-font-installation). The Ghostty config uses MesloLGS NF at 16 pt and the Raycast Dark theme.
 
-Open a fresh terminal before running `doctor.sh`. It checks CLI availability, runtimes, Ghostty and the installed links without connecting to GitHub.
+Open a fresh terminal before running `doctor.sh`. It checks CLI availability, runtimes, Ghostty, installed links, and Codex role files without connecting to GitHub.
 
 | Step | What it sets up |
 | --- | --- |
 | `brew` | Installs missing items from `Brewfile`, including PHP, Composer, uv, fnm, GitHub CLI, and daily CLI tools. Existing packages are not explicitly upgraded. |
 | `terminal` | Runs the pinned `shane-zeng/terminal-setup` fork with Zsh for Ghostty, shell plugins and Starship. Links the personal Ghostty config and ensures fnm has a runnable default Node. |
-| `agents` | Runs `install-instructions.sh` for the Codex and Claude instructions, commit command and skills. Install and sign in to the agent apps separately. |
+| `agents` | Runs `install-instructions.sh` to deploy Codex, agy, and Claude Code instructions, shared skills, Claude’s commit command, and Codex subagents. Install and sign in to the agent apps separately. |
 
 Use `./bootstrap.sh --only brew`, `--only terminal` or `--only agents` to rerun a step. Run `brew` before the first `terminal` run. The terminal installer can change the login shell and replace `.zshrc` and Ghostty's config. It asks first, prints the backup directory and stops on unmanaged symlinks it could overwrite. The SSH fetch uses a temporary checkout of the pinned commit. Once the same pin is installed and its files are in place, reruns skip the fork installer.
 
@@ -30,12 +30,24 @@ To update the terminal pin, review the fork changes, update the pin in `bootstra
 
 ## Agent Instructions
 
-- global-AGENTS.md is shared personal guidance linked to ~/.claude/CLAUDE.md.
-- codex-global-AGENTS.md is linked to ~/.codex/AGENTS.md; it loads the shared guidance and the Codex commit-guide pointer.
-- The root AGENTS.md applies to this repository. Keep claude/CLAUDE.md in its existing location.
-- global-git-commit-instructions.md is the shared commit guide for Codex and Claude Code. Codex reads it through codex-global-AGENTS.md; claude/commands/commit.md is Claude Code’s command entry point to the same guide.
-- install-instructions.sh creates five home symlinks, including the session-docs and general-code-review skill directories under ~/.agents/skills. It stops if a target already exists with a different link or as a file or directory; resolve that conflict before retrying.
-- The installer does not replace ~/.claude/settings.json or other machine-specific app settings.
+- `global-AGENTS.md` is shared personal guidance linked to `~/.claude/CLAUDE.md`. The root `AGENTS.md` applies to this repository.
+- `codex-global-AGENTS.md` and `agy-global-AGENTS.md` are linked to `~/.codex/AGENTS.md` and `~/.gemini/AGENTS.md`, respectively. Codex uses `$CODEX_HOME` when set. Both entry points use the installed symlink to locate the shared guidance and commit guide.
+- `claude/commands/commit.md` is Claude Code’s command entry point to the shared commit guide. The installer links `session-docs` and `general-code-review` under both `~/.agents/skills/` and `~/.gemini/config/skills/`. See [Antigravity customization discovery](https://antigravity.google/docs/customization-discovery/).
+- The installer reports conflicts before installing and leaves existing app settings intact. Review any conflicting paths before rerunning it.
+
+## Codex Subagents
+
+`install-instructions.sh` copies the role files in `codex/agents/` into `${CODEX_HOME:-$HOME/.codex}/agents/`. It uses regular files for Codex’s role loader and preserves other roles in that directory. If a tracked role changes, compare it with the installed copy, then move the old copy aside and rerun the installer to deploy the update. An existing copy with identical content is accepted on reruns.
+
+| Role | Used for | Model and effort |
+| --- | --- | --- |
+| `code_mapper` | Tracing a bounded code path or data flow | `gpt-6-luna` / `high` |
+| `docs_researcher` | Checking version-specific official documentation | `gpt-6-luna` / `high` |
+| `reviewer` | Reviewing a change and its callers for regressions | `gpt-6.2-sol` / `high` |
+
+To apply the suggested limit of three concurrent subagents and the default `medium` effort for general-purpose agents, merge the keys from [codex/config.toml.example](codex/config.toml.example) into the active Codex `config.toml`. If there is already an `[agents]` table, add or update its keys there. Rename the legacy `max_threads` key if present. The deprecated `[features] multi_agent` key still controls the V1 fallback. With the current default of enabled subagents, an explicit `multi_agent = true` can be removed. See the [Codex subagent settings](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+
+Open a new session to try the roles in a Codex client that supports custom agents. The role files set the model and effort, and their read-only guidance runs under the parent session’s permissions. See [codex-global-AGENTS.md](codex-global-AGENTS.md) for when to delegate and how to choose a model for the task.
 
 ## Personal Computer Conventions
 

@@ -1,0 +1,8 @@
+# Merge these settings into ${CODEX_HOME:-$HOME/.codex}/config.toml.
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+# General-purpose agents inherit the parent model and start at medium effort.
+# Custom agent files take precedence over these defaults and explicit spawn values.
+default_subagent_reasoning_effort = "medium"

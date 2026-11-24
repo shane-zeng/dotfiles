@@ -2,6 +2,8 @@
 set -euo pipefail
 
 repo_dir="$(cd -- "$(/usr/bin/dirname "$0")" && pwd)"
+codex_dir="${CODEX_HOME:-$HOME/.codex}"
+agy_dir="$HOME/.gemini"
 failed=0
 
 pass() { printf 'OK    %s\n' "$1"; }
@@ -36,12 +38,26 @@ else
     fail 'Ghostty.app not found'
 fi
 check_link "$repo_dir/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config.ghostty"
-check_link "$repo_dir/codex-global-AGENTS.md" "$HOME/.codex/AGENTS.md"
+check_link "$repo_dir/codex-global-AGENTS.md" "$codex_dir/AGENTS.md"
+check_link "$repo_dir/agy-global-AGENTS.md" "$agy_dir/AGENTS.md"
 check_link "$repo_dir/global-AGENTS.md" "$HOME/.claude/CLAUDE.md"
 check_link "$repo_dir/claude/commands/commit.md" "$HOME/.claude/commands/commit.md"
 for skill in session-docs general-code-review; do
     check_link "$repo_dir/skills/$skill" "$HOME/.agents/skills/$skill"
+    check_link "$repo_dir/skills/$skill" "$agy_dir/config/skills/$skill"
 done
+if [ -L "$codex_dir/agents" ] || [ ! -d "$codex_dir/agents" ]; then
+    fail "$codex_dir/agents should be a regular directory"
+else
+    for role in "$repo_dir"/codex/agents/*.toml; do
+        destination="$codex_dir/agents/${role##*/}"
+        if [ -f "$destination" ] && [ ! -L "$destination" ] && cmp -s "$role" "$destination"; then
+            pass "$destination"
+        else
+            fail "$destination should be a regular file matching $role"
+        fi
+    done
+fi
 if [ ! -d /path/to/workspace/Code ]; then
     printf '%s\n' 'NOTE  /path/to/workspace/Code is unavailable. Mount the workspace for personal instructions and session paths.'
 fi
