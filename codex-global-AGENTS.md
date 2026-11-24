@@ -20,7 +20,7 @@
 
 ## Codex Subagent Delegation
 
-- When a task has at least two independent workstreams, or read-heavy exploration, review, documentation research, or log analysis can materially reduce elapsed time or keep the main context focused, delegate without waiting for an explicit request.
+- Delegate proactively when independent workstreams can produce separately verifiable results and parallel execution is likely to save enough time to justify coordination and verification. Also delegate when isolating read-heavy work would materially reduce the main agent's context load.
 - Keep quick, single-scope, sequential, or tightly coupled work in the main agent.
 - Start with no more than three concurrent subagents. Give each one a bounded task, relevant context, clear read/write boundaries, and a concise expected deliverable.
 - Prefer parallel read-only exploration and review. Delegate implementation only when ownership can be divided by file or module; do not assign multiple agents to edit the same files.
