@@ -1,6 +1,6 @@
 # Personal Dotfiles
 
-This repository stores personal computer configuration and personal global agent instructions. It is independent of the work bootstrap repository at /path/to/workspace/work/dotfiles and the work instructions repository at /path/to/work/example-instructions.
+This repository stores personal computer configuration and shared instructions for coding agents.
 
 ## Bootstrap a Personal Mac
 
@@ -53,9 +53,9 @@ Open a new session to try the roles in a Codex client that supports custom agent
 
 ## Personal Computer Conventions
 
-- GitHub remotes use github-example-work for owners example-org and example-work-account, and github-personal for shane-zeng and third-party repositories.
-- Personal projects and open-source checkouts live under /path/to/workspace/Code/; company projects live under /path/to/workspace/work/; session exports and specifications live under /path/to/workspace/copilot/.
-- The repository directory is a convention, not an account selector. Choose the SSH alias from the GitHub owner.
+- Define SSH aliases and identity file paths in `~/.ssh/config`. Keep GitHub owner-to-alias mappings and the default alias for third-party owners in `~/.config/personal-dotfiles/agent-local.md`, which the shared agent instructions read when selecting an alias.
+- Record checkout locations, the session documentation directory, and the specification directory in the local agent instructions. Choose the SSH alias from the GitHub owner.
+- Set `SESSION_DOCS_DIR` to the session documentation directory for the session-docs CLI, or pass `--dir` to override it for a command. Set `DOTFILES_WORKSPACE_DIR` if `doctor.sh` should check a local workspace directory.
 
 ## Install the Global Links
 

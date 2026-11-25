@@ -45,15 +45,14 @@ Interactive Zsh aliases and functions:
 
 ### SSH Account Aliases
 
-| Alias | Identity file | GitHub account | Use for |
-|---|---|---|---|
-| github-example-work | id_ed25519_example_work | example-work-account | example-org/*, example-work-account/* |
-| github-personal | id_ed25519_example_personal | shane-zeng | shane-zeng/* and all third-party repositories |
+- Before selecting an SSH alias, read `~/.config/personal-dotfiles/agent-local.md` for the GitHub owner-to-alias mapping and the default alias for third-party owners.
+- SSH host aliases and identity file paths are defined in `~/.ssh/config`.
+- If the local instructions are missing or do not determine an alias for the owner, ask me which alias to use before contacting GitHub over SSH.
 
 ### Always Use SSH, Never HTTPS
 
 - Use git@<alias>:<owner>/<repo>.git for every GitHub clone, fetch, pull, push, submodule, and remote.
-- Do not use HTTPS remotes or direct git@github.com: remotes. Choose github-example-work or github-personal from the repository owner, never its folder.
+- Do not use HTTPS remotes or direct git@github.com: remotes. Choose the configured alias from the repository owner, never its folder.
 - When given a browser URL or HTTPS remote, convert it to the correct SSH alias before Git network operations.
 - Before contacting a remote, inspect git remote -v; correct HTTPS or owner-mismatched aliases first.
 - Do not modify version-controlled URLs such as .gitmodules or composer.json unless requested.
@@ -68,39 +67,22 @@ Interactive Zsh aliases and functions:
 
 When I ask you to inspect, review, modify, or continue a repository, use this order:
 
-1. **Check the local workspace first.** Search with `fd` under:
-   - `/path/to/workspace/Code/` for personal and open-source projects.
-   - `/path/to/workspace/work/` for company projects.
-   - `/path/to/workspace/copilot/` for agent workspace content.
-   Confirm a GitHub repository's owner with `git remote -v`. Folder location is a convention; choose the GitHub account from the remote owner.
+1. **Check the local workspace first.** Read the workspace paths in `~/.config/personal-dotfiles/agent-local.md` and use `fd` to search the relevant directories. Confirm a GitHub repository's owner with `git remote -v` and choose the GitHub account from that owner.
    - If multiple local repositories have the same name, use the owner I gave to choose. If I did not give an owner, ask me; do not guess.
    - If I gave only a repository name and it is not local, ask me for the owner before looking it up on GitHub.
 2. **Before using a local repository, verify its state.** Check the current branch (`git branch --show-current`) and uncommitted changes (`git status --short`). Tell me which branch and worktree state you used.
    - If I ask for a PR, another branch, or newer content that is not available locally, use `git fetch` over SSH or `gh -R <owner>/<repo>`. Do not answer from stale local content.
    - Do not switch branches, pull, or stash on your own. Ask me first when that is necessary.
 3. **If the repository is not local,** first inspect it read-only with `gh -R <owner>/<repo>` after checking `gh auth status`.
-   - Clone over SSH only when the task needs extensive reading, searching, or running code. Ask me before cloning. Use `/path/to/workspace/Code/` for personal or open-source projects and `/path/to/workspace/work/` for company projects, based on the project purpose. Tell me where you cloned it.
+   - Clone over SSH only when the task needs extensive reading, searching, or running code. Ask me before cloning. Choose the checkout directory from the local workspace instructions based on the repository purpose. Tell me where you cloned it.
 4. **If `gh` fails,** report the specific reason and stop. Do not switch to another access method on your own.
 5. **GitHub connector:** if the session provides one, use it only after I agree. It uses separate authorization from `gh`; tell me which account or permission it will use before starting.
 
-## Personal Machine Workspace Layout
-
-- /path/to/workspace/Code/ — personal and open-source projects.
-- /path/to/workspace/work/ — company projects.
-- /path/to/workspace/copilot/ — agent workspace for session exports and specifications.
-- This layout is specific to the personal computer. Do not apply the work computer's the workspace layout of another machine folder mapping here.
-- Folder location is a convention only; choose the GitHub account from the remote owner.
-
 # Workspace & Path Context
-
-## Primary Paths
-
-- Primary workspace: `/path/to/workspace/`
-- Session documentation: `/path/to/workspace/copilot/docs/sessions/`
-- Technical specifications: `/path/to/workspace/copilot/spec/`
 
 ## Path Handling
 
+- Read `~/.config/personal-dotfiles/agent-local.md` for the checkout, agent workspace, session documentation, and specification paths.
 - Treat these paths as local environment conventions.
 - Verify that paths exist before accessing or modifying them.
 - Do not assume these paths exist in containers or remote environments.
@@ -112,7 +94,7 @@ Save session summaries or handoff documents only when the user explicitly reques
 
 When asked to save or document a session:
 
-- Use `/path/to/workspace/copilot/docs/sessions/` as the default destination.
+- Use `SESSION_DOCS_DIR` or the session documentation directory in the local agent instructions as the default destination.
 - Follow the naming convention `YYYY-MM-DD-topic.md`.
 - Provide the complete CLI command needed to save the document.
 - Prefer `tee` or an appropriate shell redirection method for writing files.
@@ -122,7 +104,7 @@ When asked to save or document a session:
 
 When asked to reference specifications or requirements:
 
-- Check `/path/to/workspace/copilot/spec/` when filesystem access is available.
+- Check the specification directory from the local agent instructions when filesystem access is available.
 - If the files are unavailable, request the relevant specification context.
 - Do not invent requirements or assume specifications exist.
 

@@ -5,10 +5,9 @@ description: Locate and read the user's saved session documents (docs/sessions/*
 
 # Session documents
 
-Session documents are Markdown files the user saved under `/path/to/workspace/copilot/docs/sessions/`
-(see **Session Documentation** in the personal `global-AGENTS.md`). A derived index (`index.json`) sits next to them. The
-script does the lookup, so never load the index or scan the folder yourself, and never ask the user for a path
-before trying it.
+Session documents are Markdown files saved in the configured session directory. A derived index
+(`index.json`) sits next to them. Let the script look up documents instead of reading the index or scanning
+the directory yourself.
 
 Resolve the script relative to this skill: `<skill-dir>/scripts/session_docs.py`. It uses only the Python
 standard library (3.9+).
@@ -18,8 +17,15 @@ uv run --no-project <skill-dir>/scripts/session_docs.py [--dir DIR] [--no-refres
 ```
 
 If `uv run` is blocked by the sandbox (uv cache lock), run the same script with `python3` instead. No packages are
-needed. `--dir` and `--no-refresh` go **before** the command. The directory can also be set with
-`SESSION_DOCS_DIR`.
+needed. `--dir` and `--no-refresh` go **before** the command. Pass `--dir` to override
+`SESSION_DOCS_DIR`. If the environment variable is unavailable, pass the session documentation directory
+from `~/.config/personal-dotfiles/agent-local.md` with `--dir`. Check those settings before asking for a path.
+
+Repository names in GitHub pull request URLs and `owner/repo#1234` references are indexed automatically.
+To also index bare repository names in the filename, title, or metadata block, set
+`SESSION_DOCS_REPO_PREFIXES` in the environment that runs the script. Use comma-separated prefixes
+without the trailing hyphen, for example `example,demo` to match `example-web` and `demo-api`.
+The index refreshes when the prefix list changes.
 
 ## Workflow
 

@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import session_docs as sd  # noqa: E402
@@ -15,7 +16,7 @@ import session_docs as sd  # noqa: E402
 DOC_PR = """# PR 4321 主題切換：PR 切分方式討論
 
 - 日期：2026-11-19
-- PR：[example-org/example-crm-laravel#4321](https://github.com/example-org/example-crm-laravel/pull/4321)「feat」
+- PR：[example-org/example-repo#4321](https://github.com/example-org/example-repo/pull/4321)「feat」
 - Jira：DEMO-12345「新增主題切換」
 - Codex chat：12345678-1234-4abc-8abc-123456789abc
 
@@ -84,17 +85,48 @@ class SessionDocsTest(unittest.TestCase):
     def cli(self, *argv):
         return run_cli("--dir", str(self.root), *argv)
 
+    def test_cli_uses_session_dir_environment_and_prefers_explicit_dir(self):
+        env_dir = self.root / "configured-sessions"
+        env_dir.mkdir()
+        with patch.dict(os.environ, {sd.ENV_DIR: str(env_dir)}):
+            self.assertEqual(self.cli("build")[0], 0)
+            self.assertTrue((self.root / sd.INDEX_NAME).is_file())
+            self.assertFalse((env_dir / sd.INDEX_NAME).exists())
+            self.assertEqual(run_cli("build")[0], 0)
+            self.assertTrue((env_dir / sd.INDEX_NAME).is_file())
+
+    def test_cli_explains_how_to_configure_a_missing_session_dir(self):
+        with patch.dict(os.environ):
+            os.environ.pop(sd.ENV_DIR, None)
+            code, _, err = run_cli("build")
+        self.assertEqual(code, 2)
+        self.assertIn(f"use --dir or set {sd.ENV_DIR}", err)
+
     # ---- parsing
     def test_parse_extracts_identifiers_and_headings(self):
         doc = sd.parse_text("2026-11-19-pr4321-theme-toggle-split.md", DOC_PR)
         self.assertEqual(doc["date"], "2026-11-19")
         self.assertEqual(doc["jira"], ["DEMO-12345"])
-        self.assertEqual(doc["prs"], [{"number": 4321, "repo": "example-org/example-crm-laravel"}])
-        self.assertIn("example-crm-laravel", doc["repos"])
+        self.assertEqual(doc["prs"], [{"number": 4321, "repo": "example-org/example-repo"}])
+        self.assertIn("example-repo", doc["repos"])
         self.assertEqual(doc["chat_ids"], ["12345678-1234-4abc-8abc-123456789abc"])
         titles = [h["title"] for h in doc["headings"]]
         self.assertNotIn("這行在 code fence 內，不是標題", titles)
         self.assertEqual(titles.count("結論"), 2)
+
+    def test_repos_are_extracted_from_pr_urls_and_refs_without_prefixes(self):
+        self.write("repo-refs.md", "# Repositories\n\n"
+                   "- PR: https://github.com/example-org/Weather-Dashboard/pull/2345\n"
+                   "- PR: sample-org/recipe-library#2345\n"
+                   "- Repo: ignored-name\n")
+        with patch.dict(os.environ, {sd.ENV_REPO_PREFIXES: ""}):
+            for query in ("weather-dashboard", "recipe-library"):
+                code, out, _ = self.cli("find", query, "--json")
+                self.assertEqual(code, 0)
+                self.assertEqual(json.loads(out)["results"][0]["match"], ["repo"])
+        index = sd.load_index(self.root)
+        doc = next(d for d in index["docs"] if d["name"] == "repo-refs.md")
+        self.assertEqual(doc["repos"], ["recipe-library", "weather-dashboard"])
 
     def test_jira_blocklist_ignores_sha_and_iso(self):
         self.assertEqual(sd.jira_keys("SHA-256 and ISO-8601 but DEMO-23456"), ["DEMO-23456"])
@@ -119,6 +151,27 @@ class SessionDocsTest(unittest.TestCase):
         code, out, _ = self.cli("outline", "2026-11-18-DEMO-23456-export-preview-flows.md")
         self.assertEqual(code, 0)
         self.assertIn("新章節", out)
+
+    def test_index_refreshes_legacy_entries_and_after_prefix_changes(self):
+        self.write("repo-names.md", "# Repositories\n\n- Repo: Sample-UI, Demo-API, ignored-name\n")
+        index_path = self.root / sd.INDEX_NAME
+        with patch.dict(os.environ, {sd.ENV_REPO_PREFIXES: ""}):
+            self.assertEqual(self.cli("build")[0], 0)
+        legacy_index = sd.load_index(self.root)
+        legacy_index["version"] = 1
+        del legacy_index["repo_prefixes"]
+        index_path.write_text(json.dumps(legacy_index), encoding="utf-8")
+
+        for config, expected in (
+            (" Sample, DEMO, sample, ", ["demo-api", "sample-ui"]),
+            ("demo", ["demo-api"]),
+            ("", []),
+        ):
+            with self.subTest(config=config), patch.dict(os.environ, {sd.ENV_REPO_PREFIXES: config}):
+                self.assertEqual(self.cli("build")[0], 0)
+                index = sd.load_index(self.root)
+                doc = next(d for d in index["docs"] if d["name"] == "repo-names.md")
+                self.assertEqual(doc["repos"], expected)
 
     # ---- find
     def test_find_by_jira_variants(self):

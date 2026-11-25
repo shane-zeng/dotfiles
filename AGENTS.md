@@ -1,6 +1,6 @@
 # Personal Dotfiles Repository Instructions
 
-- This is the personal dotfiles repository. The work setup remains an independent project at /path/to/workspace/work/dotfiles.
+- This repository manages personal dotfiles.
 - global-AGENTS.md contains shared personal instructions. codex-global-AGENTS.md and agy-global-AGENTS.md resolve their installed symlinks to load it.
 - This repository root AGENTS.md applies to work in this repository. Keep claude/CLAUDE.md at its existing path and unchanged.
 - install-instructions.sh deploys Codex, agy, and Claude Code instruction links, Claude’s commit command, and the session-docs and general-code-review skills under ~/.agents/skills and ~/.gemini/config/skills.

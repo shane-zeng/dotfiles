@@ -58,7 +58,7 @@ else
         fi
     done
 fi
-if [ ! -d /path/to/workspace/Code ]; then
-    printf '%s\n' 'NOTE  /path/to/workspace/Code is unavailable. Mount the workspace for personal instructions and session paths.'
+if [ -n "${DOTFILES_WORKSPACE_DIR:-}" ] && [ ! -d "$DOTFILES_WORKSPACE_DIR" ]; then
+    printf 'NOTE  Workspace directory is unavailable: %s\n' "$DOTFILES_WORKSPACE_DIR"
 fi
 exit "$failed"

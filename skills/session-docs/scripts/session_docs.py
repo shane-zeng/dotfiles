@@ -37,13 +37,13 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-DEFAULT_DIR = "/path/to/workspace/copilot/docs/sessions"
 ENV_DIR = "SESSION_DOCS_DIR"
+ENV_REPO_PREFIXES = "SESSION_DOCS_REPO_PREFIXES"
 INDEX_NAME = "index.json"
 ALIASES_NAME = "index.aliases.json"
 ARCHIVE_DIR = "_archive"
 MANIFEST_NAME = "manifest.json"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 HEADER_LINES = 40
 BODY_PREVIEW = 110
 
@@ -67,7 +67,6 @@ RE_PR_FILE = re.compile(r"(?<![a-z])pr[-_]?(\d{3,5})(?!\d)", re.I)
 RE_PR_URL = re.compile(r"github\.com/([\w.-]+/[\w.-]+)/pull/(\d+)")
 RE_PR_REPO_REF = re.compile(r"\b([\w.-]+/[\w.-]+)#(\d{3,5})\b")
 RE_PR_LABEL = re.compile(r"\bPR\s*#?\s*(\d{3,5})\b", re.I)
-RE_REPO = re.compile(r"\b(?:example-crm|example-service|example-vip|example-devops|example-sr)-[a-z0-9]+(?:-[a-z0-9]+)*\b")
 RE_UUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I)
 RE_MD_REF = re.compile(r"([A-Za-z0-9_\-.一-鿿]+\.md)\b")
 RE_QUERY_PR = re.compile(r"(?:\bpr[\s_-]*#?|#)\s*(\d{3,5})\b", re.I)
@@ -78,7 +77,10 @@ RE_QUERY_DATE = re.compile(r"\b(20\d{2}-\d{2}(?:-\d{2})?)\b")
 # --------------------------------------------------------------------------- paths
 
 def docs_root(arg_dir: Optional[str]) -> Path:
-    root = Path(arg_dir or os.environ.get(ENV_DIR) or DEFAULT_DIR).expanduser()
+    configured_dir = arg_dir or os.environ.get(ENV_DIR)
+    if not configured_dir:
+        die(f"session directory is not configured (use --dir or set {ENV_DIR})", 2)
+    root = Path(configured_dir).expanduser()
     if not root.is_dir():
         die(f"sessions directory not found: {root} (use --dir or set {ENV_DIR})", 2)
     return root
@@ -143,7 +145,7 @@ def jira_keys(text: str) -> List[str]:
     return sorted(keys)
 
 
-def parse_text(rel: str, text: str) -> Dict[str, Any]:
+def parse_text(rel: str, text: str, repo_pattern: Optional[re.Pattern[str]] = None) -> Dict[str, Any]:
     name = rel.split("/")[-1]
     lines = text.splitlines()
     headings = parse_headings(lines)
@@ -179,16 +181,19 @@ def parse_text(rel: str, text: str) -> Dict[str, Any]:
                     break
 
     prs: Dict[int, Optional[str]] = {}
+    repos = set()
     for m in RE_PR_FILE.finditer(name):
         prs.setdefault(int(m.group(1)), None)
-    for m in RE_PR_URL.finditer(zone):
-        prs[int(m.group(2))] = m.group(1)
-    for m in RE_PR_REPO_REF.finditer(zone):
-        prs[int(m.group(2))] = m.group(1)
+    for pattern in (RE_PR_URL, RE_PR_REPO_REF):
+        for m in pattern.finditer(zone):
+            owner_repo, number = m.groups()
+            prs[int(number)] = owner_repo
+            repos.add(owner_repo.split("/", 1)[1].lower())
     for m in RE_PR_LABEL.finditer(f"{title}\n{zone}"):
         prs.setdefault(int(m.group(1)), None)
 
-    repos = sorted({r.rstrip("-") for r in RE_REPO.findall(scan.lower())})
+    if repo_pattern is not None:
+        repos.update(repo_pattern.findall(scan.lower()))
 
     summary = ""
     for key in ("結論", "摘要", "目的", "範圍"):
@@ -221,7 +226,7 @@ def parse_text(rel: str, text: str) -> Dict[str, Any]:
         "jira": jira_keys(scan),
         "jira_mentions": jira_keys(text)[:30],
         "prs": [{"number": n, "repo": r} for n, r in sorted(prs.items())],
-        "repos": repos,
+        "repos": sorted(repos),
         "chat_ids": sorted({u.lower() for u in RE_UUID.findall(zone)}),
         "headings": headings,
         "md_refs": sorted({r for r in RE_MD_REF.findall(text) if r != name}),
@@ -303,7 +308,16 @@ def load_index(root: Path) -> Dict[str, Any]:
 
 
 def refresh(root: Path, write: bool = True, force: bool = False) -> Dict[str, Any]:
-    previous = {d["path"]: d for d in load_index(root).get("docs", [])}
+    configured_prefixes = os.environ.get(ENV_REPO_PREFIXES, "").split(",")
+    repo_prefixes = sorted({prefix.strip().lower() for prefix in configured_prefixes if prefix.strip()})
+    repo_pattern = None
+    if repo_prefixes:
+        alternatives = "|".join(re.escape(prefix) for prefix in repo_prefixes)
+        repo_pattern = re.compile(rf"\b(?:{alternatives})-[a-z0-9]+(?:-[a-z0-9]+)*\b")
+    cached_index = load_index(root)
+    previous = {}
+    if cached_index.get("repo_prefixes") == repo_prefixes:
+        previous = {d["path"]: d for d in cached_index.get("docs", [])}
     aliases = read_json(root / ALIASES_NAME, {})
     manifest = load_manifest(root)
     docs: List[Dict[str, Any]] = []
@@ -314,7 +328,7 @@ def refresh(root: Path, write: bool = True, force: bool = False) -> Dict[str, An
         if cached and cached.get("sha1") == sha and not force:
             doc = dict(cached)
         else:
-            doc = parse_text(rel, data.decode("utf-8", errors="replace"))
+            doc = parse_text(rel, data.decode("utf-8", errors="replace"), repo_pattern)
             doc["sha1"], doc["size"] = sha, len(data)
             if not doc["date"]:
                 doc["date"], doc["date_source"] = fallback_date(root, rel)
@@ -326,7 +340,7 @@ def refresh(root: Path, write: bool = True, force: bool = False) -> Dict[str, An
         doc["aliases"] = aliases_for(doc, aliases) if isinstance(aliases, dict) else []
         doc["archive"] = manifest.get(doc["name"], {"reason": None}) if doc["archived"] else None
 
-    index = {"version": SCHEMA_VERSION, "docs": docs}
+    index = {"version": SCHEMA_VERSION, "repo_prefixes": repo_prefixes, "docs": docs}
     if write:
         write_json_if_changed(root / INDEX_NAME, index)
     return index
@@ -791,7 +805,7 @@ def cmd_archive(args: Any) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="session_docs.py", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dir", help=f"sessions directory (default: ${ENV_DIR} or {DEFAULT_DIR})")
+    parser.add_argument("--dir", help=f"sessions directory (defaults to ${ENV_DIR})")
     parser.add_argument("--no-refresh", action="store_true", help="do not write index.json while searching")
     sub = parser.add_subparsers(dest="command", required=True)
 
