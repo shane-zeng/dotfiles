@@ -42,6 +42,21 @@ link_path() {
     printf 'Linked: %s\n' "$destination"
 }
 
+install_settings() {
+    local source_path="$1" destination="$2"
+    if [ -e "$destination" ] || [ -L "$destination" ]; then
+        printf 'Keeping existing settings: %s\n' "$destination"
+        return
+    fi
+
+    (
+        umask 077
+        /bin/mkdir -p "$(/usr/bin/dirname "$destination")"
+        /bin/cp -n "$source_path" "$destination"
+    )
+    printf 'Initialized settings: %s\n' "$destination"
+}
+
 check_role() {
     local source_path="$1" destination="$2"
     if [ ! -f "$source_path" ]; then
@@ -103,3 +118,6 @@ for role in "$repo_dir"/codex/agents/*.toml; do
         printf 'Installed: %s\n' "$destination"
     fi
 done
+
+install_settings "$repo_dir/claude/settings.json.example" "$HOME/.claude/settings.json"
+install_settings "$repo_dir/agy/settings.json.example" "$agy_dir/antigravity-cli/settings.json"

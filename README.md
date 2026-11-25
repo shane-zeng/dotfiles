@@ -22,7 +22,7 @@ Open a fresh terminal before running `doctor.sh`. It checks CLI availability, ru
 | --- | --- |
 | `brew` | Installs missing items from `Brewfile`, including PHP, Composer, uv, fnm, GitHub CLI, and daily CLI tools. Existing packages are not explicitly upgraded. |
 | `terminal` | Runs the pinned `shane-zeng/terminal-setup` fork with Zsh for Ghostty, shell plugins and Starship. Links the personal Ghostty config and ensures fnm has a runnable default Node. |
-| `agents` | Runs `install-instructions.sh` to deploy Codex, agy, and Claude Code instructions, shared skills, Claude’s commit command, and Codex subagents. Install and sign in to the agent apps separately. |
+| `agents` | Runs `install-instructions.sh` to deploy Codex, agy, and Claude Code instructions, shared skills, Claude’s commit command, Codex subagents, and initial Claude Code and agy settings. Install and sign in to the agent apps separately. |
 
 Use `./bootstrap.sh --only brew`, `--only terminal` or `--only agents` to rerun a step. Run `brew` before the first `terminal` run. The terminal installer can change the login shell and replace `.zshrc` and Ghostty's config. It asks first, prints the backup directory and stops on unmanaged symlinks it could overwrite. The SSH fetch uses a temporary checkout of the pinned commit. Once the same pin is installed and its files are in place, reruns skip the fork installer.
 
@@ -34,6 +34,8 @@ To update the terminal pin, review the fork changes, update the pin in `bootstra
 - `codex-global-AGENTS.md` and `agy-global-AGENTS.md` are linked to `~/.codex/AGENTS.md` and `~/.gemini/AGENTS.md`, respectively. Codex uses `$CODEX_HOME` when set. Both entry points use the installed symlink to locate the shared guidance and commit guide.
 - `claude/commands/commit.md` is Claude Code’s command entry point to the shared commit guide. The installer links `session-docs` and `general-code-review` under both `~/.agents/skills/` and `~/.gemini/config/skills/`. See [Antigravity customization discovery](https://antigravity.google/docs/customization-discovery/).
 - The installer reports conflicts before installing and leaves existing app settings intact. Review any conflicting paths before rerunning it.
+
+On a fresh setup, the installer copies [Claude Code settings](claude/settings.json.example) to `~/.claude/settings.json` and [Antigravity CLI settings](agy/settings.json.example) to `~/.gemini/antigravity-cli/settings.json`. Both are regular files that the apps can update locally. Configure trusted workspaces on each Mac.
 
 ## Codex Subagents
 

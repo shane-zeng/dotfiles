@@ -1,6 +1,6 @@
 ---
 name: session-docs
-description: Locate and read the user's saved session documents (docs/sessions/*.md) without the user pasting a path. Use when the user says to read, open, continue, or look up a session by Jira key (DEMO-23456), PR number (pr4321), topic, date, alias, or Codex chat id, or asks for one section of such a document (for example the conclusion). Also use to see why a session was archived or to propose archiving. Not for native Codex or Claude chat transcripts.
+description: Locate and read the user's saved session documents (docs/sessions/*.md) without the user pasting a path. Use when the user says to read, open, continue, or look up a session by Jira key (ABC-1234), PR number (pr1234), topic, date, alias, or Codex chat id, or asks for one section of such a document (for example the conclusion). Also use to see why a session was archived or to propose archiving, to record model and reasoning effort after a user-requested session save, or when the user asks about model and effort usage. Native logs are used only as a source for usage metadata.
 ---
 
 # Session documents
@@ -24,7 +24,7 @@ needed. `--dir` and `--no-refresh` go **before** the command. The directory can 
 ## Workflow
 
 1. **Locate.** `find <words from the user's request>`. Pass Jira keys, PR numbers, dates, aliases, or title words
-   as they were given; the script normalizes `demo23456`, `DEMO 23456`, `pr4321`, `PR #4321`, and `#4321`.
+   as they were given; the script normalizes `abc1234`, `ABC 1234`, `pr1234`, `PR #1234`, and `#1234`.
 2. **Decide.**
    - One clear match: use it.
    - Several close matches: show the candidates (date, title, file name) and ask which one. Do not guess.
@@ -98,6 +98,53 @@ Rebuilding the index never removes them. Add an alias only when the user asks.
   status, chat id). A document without that block is still found by file name, title, headings, and body text.
 - Line numbers go stale when a document is edited; sections are matched by heading text. Refresh happens on
   every call, so outline numbers are current when printed.
+
+## Model and effort usage
+
+`scripts/model_usage.py` reads native Claude Code, Codex and AgY logs without changing them.
+By default, `save` keeps one row per session in `~/.local/state/session-docs/model-usage.jsonl`.
+Override the location with `--out` or `MODEL_USAGE_OUT` to reuse an existing history, including a
+previous `docs/sessions/model-usage.jsonl`. Keep the history and raw reports private. They can include
+session IDs, titles, local paths and part of the first AgY prompt.
+
+**After saving or updating a session document at the user's request, record the model and effort, then save
+the local history.** `meta --apply` writes two bullets into the document's metadata block under the H1
+(or creates the block):
+
+```markdown
+- 模型：claude-opus-5-5
+- 推理強度：high
+```
+
+```bash
+uv run --no-project <skill-dir>/scripts/model_usage.py meta --apply <document.md>
+uv run --no-project <skill-dir>/scripts/model_usage.py save
+```
+
+- `meta` finds the running session from `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID`. Without either (for
+  example AgY), pass `--tool agy|codex|claude`: it then takes the latest session of that tool that started in
+  the current directory, and fails rather than guess when there is none. `--session ID` picks one explicitly.
+  It prints the chosen session on stderr; check it matches before relying on the bullets.
+- The values cover the session so far. If the model or effort changed, the bullets list each one with its
+  count (`high×40、medium×5`). Subagents are not included.
+- Do not copy token numbers into the document unless the user asks.
+
+Reports merge the file with the live transcripts, so purged sessions still appear:
+
+```bash
+uv run --no-project <skill-dir>/scripts/model_usage.py [summary|sessions|roles] [--tool claude|codex|agy] [--since YYYY-MM-DD] [--main-only] [--json]
+```
+
+- `roles` groups subagent sessions by role, model and effort. Claude gets the role from the subagent metadata
+  file. Codex uses either the rollout's session metadata or `source.subagent.thread_spawn`.
+- Use `python3` directly if the sandbox blocks `uv run` on its cache lock. No packages are needed.
+- Units differ: Claude counts API responses, Codex counts turns, AgY counts generations. AgY has no token data
+  (its protobuf schema is undocumented), so its token columns show `-`.
+- Codex `guardian` sessions (the automatic permission reviewer) are excluded unless `--include-guardian`
+  is given.
+- Codex compresses older sessions to `.jsonl.zst`. They are read through the `zstd` command; without it the
+  script warns on stderr and skips them, so Codex history is incomplete.
+- AgY fields were found by inspecting real data; if a report shows many `unknown` efforts, the format changed.
 
 ## Tests
 

@@ -49,7 +49,7 @@ if [ "$dry_run" = 1 ]; then
         printf '[terminal] Link %s to %s and install a default Node LTS if missing.\n' "$ghostty_config" "$repo_dir/ghostty/config"
     fi
     if [ "$stage" = all ] || [ "$stage" = agents ]; then
-        printf '[agents] Run %s to install instruction and skill links and Codex subagents.\n' "$repo_dir/install-instructions.sh"
+        printf '[agents] Run %s to install instruction and skill links, Codex subagents, and initial app settings.\n' "$repo_dir/install-instructions.sh"
     fi
     exit 0
 fi
